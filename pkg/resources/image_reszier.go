@@ -20,7 +20,8 @@ type Image struct {
 
 type Request struct {
 	CreatedAt time.Time `json:"created_at,omitempty" gorm:"column:inserted_at"`
-	UUID      uuid.UUID `json:"uuid" gorm:"column:uuid"`
+	Id        int64     `json:"-" gorm:"column:id"`
+	ImageUUID uuid.UUID `json:"image_uuid" gorm:"column:image_uuid"`
 	Status    string    `json:"status" gorm:"column:status"`
 }
 

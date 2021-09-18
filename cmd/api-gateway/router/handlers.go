@@ -65,18 +65,15 @@ func (router *Router) uploadImage(w http.ResponseWriter, r *http.Request) {
 	}
 	imageBytes := utils.StreamToByte(file)
 
-	uuid := uuid.New()
-	imageRequest := &resources.Request{
-		UUID:      uuid,
-		Status:    resources.Processing,
-		CreatedAt: time.Now(),
-	}
+	imageUuid := uuid.New()
 
 	// save to redis, keep going even if save failed
-	router.redisClient.Set(uuid.String()+":status", imageRequest.Status)
+	router.redisClient.Set(imageUuid.String()+":status", resources.Processing)
 
 	// save to postgres
-	result := router.psqlClient.Database.Table("requests").Create(imageRequest)
+	result := router.psqlClient.Database.Table("requests").Create(&resources.Request{ImageUUID: imageUuid,
+		Status: resources.Processing, CreatedAt: time.Now()})
+
 	if result.Error != nil {
 		router.logger.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -85,7 +82,7 @@ func (router *Router) uploadImage(w http.ResponseWriter, r *http.Request) {
 
 	// send to kafka queue
 	image := &resources.Image{
-		UUID:       uuid,
+		UUID:       imageUuid,
 		Image:      imageBytes,
 		Dimensions: targetDimensions,
 	}
@@ -95,7 +92,7 @@ func (router *Router) uploadImage(w http.ResponseWriter, r *http.Request) {
 		router.logger.Error(err)
 		return
 	}
-	err = router.kafkaProducer.ProduceMessage(router.imageResizeTopic, uuid.String(), imageJson)
+	err = router.kafkaProducer.ProduceMessage(router.imageResizeTopic, imageUuid.String(), imageJson)
 	if err != nil {
 		router.logger.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -103,7 +100,7 @@ func (router *Router) uploadImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(imageRequest.UUID.String()))
+	w.Write([]byte(imageUuid.String()))
 	// TODO: Change all responses to json
 
 	// w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -129,8 +126,8 @@ func (router *Router) getStatus(w http.ResponseWriter, r *http.Request) {
 
 func (router *Router) downloadImage(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	reqUUID := vars["uuid"]
-	status, err := router.getRequestStatus(reqUUID)
+	imageUuid := vars["uuid"]
+	status, err := router.getRequestStatus(imageUuid)
 	if err != nil {
 		http.Error(w, "The rquested image uuid not found.", http.StatusNotFound)
 		return
@@ -144,11 +141,14 @@ func (router *Router) downloadImage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "The rquested image failed to resize.", http.StatusInternalServerError)
 		return
 	} else if status == resources.Done {
-		resizedImage, err := router.getResizedImage(reqUUID)
+		resizedImage, err := router.getResizedImage(imageUuid)
 		if err != nil {
 			http.Error(w, "Failed to download the requested image.", http.StatusInternalServerError)
 			return
 		}
+		// w.Header().Set("Content-Type", "Content-Type: image/jpg")
+		w.Header().Set("Content-Type", "image/jpg")
+
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(resizedImage))
 		return
@@ -162,56 +162,57 @@ func (router *Router) downloadImage(w http.ResponseWriter, r *http.Request) {
 // Helpers:
 // --------
 // --------
-func (r *Router) getRequestStatus(reqUUID string) (string, error) {
+func (r *Router) getRequestStatus(imageUuidStr string) (string, error) {
 	// get request status from cache
-	status, err := r.redisClient.Get(reqUUID + ":status")
-	if err == nil {
+	status, err := r.redisClient.Get(imageUuidStr + ":status")
+
+	if err == nil && status != "" {
 		return status, nil
 	}
 
 	// if not exist in cache get from DB
-	uuid, err := uuid.Parse(reqUUID)
+	imageUuid, err := uuid.Parse(imageUuidStr)
 	if err != nil {
 		r.logger.Error(err)
 		return "", err
 	}
 
 	request := &resources.Request{}
-	result := r.psqlClient.Database.Table("requests").First(request, "uuid = ?", uuid)
+	result := r.psqlClient.Database.Table("requests").Where("image_uuid = ?", imageUuid).Last(request)
 	if result.Error != nil {
 		r.logger.Error(err)
 		return "", err
 	}
 
 	// Update the cache with the fetch status from the DB
-	r.redisClient.Set(reqUUID+":status", request.Status)
+	r.redisClient.Set(imageUuidStr+":status", request.Status)
 
-	return status, nil
+	return request.Status, nil
 }
 
-func (r *Router) getResizedImage(reqUUID string) ([]byte, error) {
+func (r *Router) getResizedImage(imageUuidStr string) ([]byte, error) {
 	// get resized image from cache
-	resizedImage, err := r.redisClient.Get(reqUUID + ":resized_image")
-	if err == nil {
+	resizedImage, err := r.redisClient.Get(imageUuidStr + ":resized_image")
+	if err == nil && resizedImage != "" {
 		return []byte(resizedImage), nil
 	}
 
 	// if not exist in cache get from DB
-	uuid, err := uuid.Parse(reqUUID)
+	imageUuid, err := uuid.Parse(imageUuidStr)
 	if err != nil {
 		r.logger.Error(err)
 		return []byte{}, err
 	}
 
 	resized_image := &resources.Image{}
-	result := r.psqlClient.Database.Table("images").First(resized_image, "uuid = ?", uuid)
+	result := r.psqlClient.Database.Table("images").Last(resized_image, "uuid = ?", imageUuid)
 	if result.Error != nil {
 		r.logger.Error(err)
 		return []byte{}, err
 	}
 
 	// Update the cache
-	r.redisClient.Set(reqUUID+":resized_image", resized_image.Image)
+	r.redisClient.Set(imageUuidStr+":resized_image", resized_image.Image)
 
 	return resized_image.Image, nil
 }

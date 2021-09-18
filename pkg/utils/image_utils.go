@@ -1,10 +1,14 @@
 package utils
 
 import (
+	"bytes"
 	"errors"
 	"image"
+	"image/jpeg"
 	"mime/multipart"
 	"strconv"
+
+	"github.com/nfnt/resize"
 )
 
 // Validating the image dimensions and the image format
@@ -20,4 +24,21 @@ func ValidateImageResolution(file *multipart.File, maxSize int64) error {
 	}
 	return nil
 
+}
+
+func ResizeImage(imageBytes []byte, width uint, height uint) ([]byte, error) {
+	img, _, err := image.Decode(bytes.NewReader(imageBytes))
+	if err != nil {
+		return nil, err
+	}
+
+	m := resize.Resize(width, height, img, resize.Lanczos3)
+
+	buf := new(bytes.Buffer)
+	err = jpeg.Encode(buf, m, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }

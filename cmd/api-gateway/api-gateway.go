@@ -25,7 +25,7 @@ func main() {
 	REDIS_DB := 0
 
 	KAFKA_SERVERS := "127.0.0.1:29092"
-	KAFKA_IMAGE_RESIZE_TOPIC := "image_resize"
+	KAFKA_IMAGE_RESIZE_TOPIC := "image-resize"
 	POSTGRES_HOST := "127.0.0.1"
 	POSTGRES_PORT := "5432"
 	POSTGRES_DATABASE := "imageresizer"
@@ -46,12 +46,6 @@ func main() {
 	logger.SetLevel(logLevel)
 
 	logger.Debug("Image resizer application started.")
-
-	// kafkaConsumer, err := queue.NewKafkaConsumer(KAFKA_SERVERS, CONSUMER_GROUP)
-	// defer kafkaConsumer.Close()
-	// if err != nil {
-	// 	logger.Error(err)
-	// }
 
 	KafkaProducer, err := queue.NewKafkaProducer(KAFKA_SERVERS)
 	defer KafkaProducer.Producer.Close()
