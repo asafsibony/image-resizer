@@ -33,8 +33,8 @@ func main() {
 	POSTGRES_PASSWORD := "\"\""
 	POSTGRES_OPTIONS := ""
 
-	logger := logrus.New()
 	// init logger
+	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.SetOutput(os.Stdout)
 
@@ -45,16 +45,17 @@ func main() {
 	}
 	logger.SetLevel(logLevel)
 
-	logger.Debug("Image resizer application started.")
-
+	logger.Debug("Intializing the Kafka producer...")
 	KafkaProducer, err := queue.NewKafkaProducer(KAFKA_SERVERS)
 	defer KafkaProducer.Producer.Close()
 	if err != nil {
 		logger.Error(err.Error())
 	}
 
+	logger.Debug("Intializing the Redis client")
 	redisClient := cache.NewRedisClient(context.Background(), logger, REDIS_HOST, REDIS_PASSWORD, REDIS_DB)
 
+	logger.Debug("Intializing the Postgres client...")
 	connectionInfo := &persistency.ConnectionInfo{
 		Host:     POSTGRES_HOST,
 		Port:     POSTGRES_PORT,
@@ -63,7 +64,6 @@ func main() {
 		Password: POSTGRES_PASSWORD,
 		Options:  POSTGRES_OPTIONS,
 	}
-
 	psqlClient, err := persistency.NewClient(logger, connectionInfo, false)
 	if err != nil {
 		logger.Error(err.Error())
@@ -73,9 +73,11 @@ func main() {
 		logger.Error(err.Error())
 	}
 
+	logger.Debug("Intializing the HTTP server...")
 	httpServer := httpServer.NewServer(logger, HTTP_SERVER_PORT)
 	router := router.NewRouter(httpServer, logger, redisClient, psqlClient, KafkaProducer, KAFKA_IMAGE_RESIZE_TOPIC)
 	router.InitRoutes()
 
+	logger.Debug("Services Initialize done. starting the app.")
 	httpServer.Start()
 }

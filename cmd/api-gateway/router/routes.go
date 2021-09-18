@@ -33,6 +33,7 @@ func NewRouter(httpServer *httpServer.Server,
 	}
 }
 
+// Init the HTTP routes
 func (r *Router) InitRoutes() {
 	r.httpServer.Router.HandleFunc("/upload", r.uploadImage).Methods("POST")
 	r.httpServer.Router.HandleFunc("/status/{uuid}", r.getStatus).Methods("GET")
