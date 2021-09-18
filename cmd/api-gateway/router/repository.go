@@ -28,12 +28,14 @@ func (r *Router) saveRequestToDB(imageUuid uuid.UUID) error {
 }
 
 // Send the resize request to Kafka queue
-func (r *Router) sendRequestToQueue(imageUuid uuid.UUID, imageBytes []byte, targetDimensions *resources.TargetDimensions) error {
+func (r *Router) sendRequestToQueue(imageUuid uuid.UUID, imageBytes []byte,
+	targetDimensions *resources.TargetDimensions, fileName string) error {
 
 	image := &resources.Image{
 		UUID:       imageUuid,
 		Image:      imageBytes,
 		Dimensions: targetDimensions,
+		Name:       fileName,
 	}
 	imageJson, err := json.Marshal(image)
 	if err != nil {
@@ -78,29 +80,31 @@ func (r *Router) getRequestStatus(imageUuidStr string) (string, error) {
 }
 
 // Get Resized image (Trying first from the cache and then from postgres as a fallback).
-func (r *Router) getResizedImage(imageUuidStr string) ([]byte, error) {
+func (r *Router) getResizedImage(imageUuidStr string) (*resources.Image, error) {
 	// get resized image from cache
 	resizedImage, err := r.redisClient.Get(imageUuidStr + ":resized_image")
-	if err == nil && resizedImage != "" {
-		return []byte(resizedImage), nil
+	fileName, err := r.redisClient.Get(imageUuidStr + ":file_name")
+	if fileName != "" || resizedImage != "" {
+		return &resources.Image{Image: []byte(resizedImage), Name: fileName}, nil
 	}
 
 	// if not exist in cache get from DB
 	imageUuid, err := uuid.Parse(imageUuidStr)
 	if err != nil {
 		r.logger.Error(err)
-		return []byte{}, err
+		return nil, err
 	}
 
 	resized_image := &resources.Image{}
 	result := r.psqlClient.Database.Table("images").Last(resized_image, "uuid = ?", imageUuid)
 	if result.Error != nil {
 		r.logger.Error(err)
-		return []byte{}, err
+		return nil, err
 	}
 
 	// Update the cache
 	r.redisClient.Set(imageUuidStr+":resized_image", resized_image.Image)
+	r.redisClient.Set(imageUuidStr+":file_name", resized_image.Name)
 
-	return resized_image.Image, nil
+	return resized_image, nil
 }

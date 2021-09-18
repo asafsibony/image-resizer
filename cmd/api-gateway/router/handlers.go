@@ -27,7 +27,7 @@ func (router *Router) uploadImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Getting the image file reader from the request
-	file, _, err := r.FormFile("image")
+	file, fileHeader, err := r.FormFile("image")
 	if err != nil {
 		router.logger.Error(err.Error())
 		http.Error(w, "Bad request.", http.StatusBadRequest)
@@ -66,7 +66,7 @@ func (router *Router) uploadImage(w http.ResponseWriter, r *http.Request) {
 
 	// send to kafka queue
 	imageBytes := utils.StreamToByte(file)
-	err = router.sendRequestToQueue(imageUuid, imageBytes, targetDimensions)
+	err = router.sendRequestToQueue(imageUuid, imageBytes, targetDimensions, fileHeader.Filename)
 	if err != nil {
 		router.logger.Error(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
@@ -114,11 +114,12 @@ func (router *Router) downloadImage(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Failed to download the requested image.", http.StatusInternalServerError)
 			return
 		}
-		// w.Header().Set("Content-Type", "Content-Type: image/jpg")
-		w.Header().Set("Content-Type", "image/jpg")
 
+		ContentDisposition := "attachment; filename=" + resizedImage.Name
+		w.Header().Set("Content-Disposition", ContentDisposition)
+		w.Header().Set("Content-Type", "image/jpg")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(resizedImage))
+		w.Write([]byte(resizedImage.Image))
 		return
 	}
 

@@ -12,5 +12,6 @@ CREATE INDEX requests_image_uuid_index ON requests(image_uuid);
 CREATE TABLE images (
     uuid UUID PRIMARY KEY NOT NULL,
     inserted_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    resized_image BYTEA
+    resized_image BYTEA,
+    name VARCHAR (64) NOT NULL
 );

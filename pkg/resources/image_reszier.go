@@ -16,6 +16,7 @@ type Image struct {
 	UUID       uuid.UUID         `json:"uuid" gorm:"column:uuid"`
 	Image      []byte            `json:"image,omitempty" gorm:"column:resized_image"`
 	Dimensions *TargetDimensions `json:"dimensions" gorm:"-"`
+	Name       string            `json:"name" gorm:"column:name"`
 }
 
 type Request struct {

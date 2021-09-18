@@ -53,16 +53,16 @@ func (r *Resizer) Start() {
 			resizedImage, err := utils.ResizeImage(image.Image, uint(image.Dimensions.Width), uint(image.Dimensions.Height))
 			status := ""
 			if err != nil {
-				r.logger.Error("Failed to resize the image: ", image.UUID.String(), "Error: ", err)
+				r.logger.Error("Failed to resize the image: ", image.UUID.String(), "Error: ", err.Error())
 				status = resources.Failed
 			} else {
-				r.logger.Debug("Image resize finished succesfully. image UUID: ", image.UUID.String(), "Error: ", err)
+				r.logger.Debug("Image resize finished succesfully. image UUID: ", image.UUID.String())
 				status = resources.Done
 			}
 
 			// Updating Cache and DB with the resize results:
-			r.updateResultInCache(image.UUID.String(), status, resizedImage)
-			r.updateResultInDB(image.UUID, status, resizedImage)
+			r.updateResultInCache(image.UUID.String(), status, resizedImage, image.Name)
+			r.updateResultInDB(image.UUID, status, resizedImage, image.Name)
 
 		} else {
 			// The client will automatically try to recover from all errors.
