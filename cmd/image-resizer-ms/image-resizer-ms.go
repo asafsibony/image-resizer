@@ -12,16 +12,14 @@ import (
 )
 
 func main() {
+	// TODO: replace by env vars
 	LOG_LEVEL := "debug"
-
 	REDIS_HOST := "127.0.0.1:6379"
 	REDIS_PASSWORD := ""
 	REDIS_DB := 0
-
 	KAFKA_SERVERS := "127.0.0.1:29092"
 	KAFKA_IMAGE_RESIZE_TOPIC := "image-resize"
 	KAFKA_CONSUMER_GROUP := "image-resizer-ms"
-
 	POSTGRES_HOST := "127.0.0.1"
 	POSTGRES_PORT := "5432"
 	POSTGRES_DATABASE := "imageresizer"
@@ -29,8 +27,8 @@ func main() {
 	POSTGRES_PASSWORD := "\"\""
 	POSTGRES_OPTIONS := ""
 
+	// initialize the logger
 	logger := logrus.New()
-	// init logger
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.SetOutput(os.Stdout)
 
@@ -41,16 +39,17 @@ func main() {
 	}
 	logger.SetLevel(logLevel)
 
-	logger.Debug("Image resizer application started.")
-
+	logger.Debug("Intializing the Kafka consumer...")
 	kafkaConsumer, err := queue.NewKafkaConsumer(KAFKA_SERVERS, KAFKA_CONSUMER_GROUP)
 	defer kafkaConsumer.Consumer.Close()
 	if err != nil {
 		logger.Error(err)
 	}
 
+	logger.Debug("Intializing the Redis client")
 	redisClient := cache.NewRedisClient(context.Background(), logger, REDIS_HOST, REDIS_PASSWORD, REDIS_DB)
 
+	logger.Debug("Intializing the Postgres client...")
 	connectionInfo := &persistency.ConnectionInfo{
 		Host:     POSTGRES_HOST,
 		Port:     POSTGRES_PORT,
@@ -59,7 +58,6 @@ func main() {
 		Password: POSTGRES_PASSWORD,
 		Options:  POSTGRES_OPTIONS,
 	}
-
 	psqlClient, err := persistency.NewClient(logger, connectionInfo, false)
 	if err != nil {
 		logger.Error(err.Error())
@@ -69,6 +67,7 @@ func main() {
 		logger.Error(err.Error())
 	}
 
+	logger.Debug("Services Initialize done. starting the app.")
 	resizer := resizer.NewResizer(logger, redisClient, psqlClient, kafkaConsumer, KAFKA_IMAGE_RESIZE_TOPIC)
 	resizer.Start()
 }

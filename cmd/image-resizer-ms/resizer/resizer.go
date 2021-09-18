@@ -33,6 +33,7 @@ func NewResizer(logger *logrus.Logger,
 	}
 }
 
+// Consumes the requested images for resizing, and perform it.
 func (r *Resizer) Start() {
 	c := r.kafkaConsumer.Consumer
 	c.SubscribeTopics([]string{r.imageResizeTopic}, nil)
