@@ -58,7 +58,7 @@ func (c *Client) Start() error {
 		c.connectionInfo.Port,
 		c.connectionInfo.Options)
 
-	c.logger.Info("Connecting to persistency", "address", c.connectionInfo.Host, ":", c.connectionInfo.Port)
+	c.logger.Info("Connecting to persistency", "dsn", dsn)
 
 	var err error
 	c.Database, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
