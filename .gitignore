@@ -1,2 +1,5 @@
-main
 api-gateway
+!api-gateway/
+
+main
+!main/
