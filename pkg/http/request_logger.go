@@ -1,4 +1,4 @@
-package api
+package http
 
 // Taken from:
 // https://blog.questionable.services/article/guide-logging-middleware-go/

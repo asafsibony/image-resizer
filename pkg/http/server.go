@@ -1,4 +1,4 @@
-package api
+package http
 
 import (
 	"context"
@@ -13,29 +13,30 @@ import (
 )
 
 type Server struct {
-	router *mux.Router
+	Router *mux.Router
 	logger *logrus.Logger
+	port   string
 }
 
-func NewServer(logger *logrus.Logger) (*Server, error) {
+func NewServer(logger *logrus.Logger, port string) *Server {
 	return &Server{
-		router: mux.NewRouter(),
+		Router: mux.NewRouter(),
 		logger: logger,
-	}, nil
+		port:   port,
+	}
 }
+
 func (s *Server) Start() {
 	var wait time.Duration
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.Parse()
 
-	s.initRoutes()
-
 	// TODO: ---------------------------------------------
 	loggingMiddleware := LoggingMiddleware(*s.logger)
-	loggedRouter := loggingMiddleware(s.router)
+	loggedRouter := loggingMiddleware(s.Router)
 
 	srv := &http.Server{
-		Addr: "0.0.0.0:8080",
+		Addr: "0.0.0.0:" + s.port,
 		// Good practice to set timeouts to avoid Slowloris attacks.
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
