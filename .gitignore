@@ -3,3 +3,6 @@ api-gateway
 
 main
 !main/
+
+image-resizer-ms
+!image-resizer-ms/
