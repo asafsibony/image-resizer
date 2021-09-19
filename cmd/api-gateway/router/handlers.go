@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	MAX_UPLOAD_SIZE     int64 = 10 * 1024 * 1024 // 10MB
+	MAX_UPLOAD_SIZE     int64 = 1 * 1024 * 1024  // 1MB
 	MAX_RESOLUTION_SIZE int64 = 10 * 1024 * 1024 // 10MP
 )
 
