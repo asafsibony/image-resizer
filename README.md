@@ -40,7 +40,7 @@ curl -i https://asafsibony.com/image-resizer/status/ab0c6ba1-76c8-4ac0-a664-7fc9
 -- returns: The resizied image.
 --example:
 ```sh
-curl -i -OJ  https://asafsibony.com/image-resizer/download/ab0c6ba1-76c8-4ac0-a664-7fc992861945
+curl -OJ  https://asafsibony.com/image-resizer/download/ab0c6ba1-76c8-4ac0-a664-7fc992861945
 ```
 
 ## High Level Design
@@ -76,3 +76,7 @@ kubectl apply -Rf .
 ./deployment/helm/redis/install.sh
 ```
 
+## TODO:
+- Testing
+- Return HTTP responses as a formatted JSON.
+- Consider adding connection pooler for Postgres.

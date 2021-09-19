@@ -8,21 +8,10 @@ import (
 )
 
 type RedisClient struct {
-	// rdb *redis.ClusterClient
 	rdb    *redis.Client
 	ctx    context.Context
 	logger *logrus.Logger
 }
-
-// func NewRedisClusterClient(ctx context.Context, redisHosts string, redisPassword string) *RedisClient {
-// 	return &RedisClient{
-// 		rdb: redis.NewClusterClient(&redis.ClusterOptions{
-// 			Addrs:    strings.Split(redisHosts, ","),
-// 			Password: redisPassword,
-// 		}),
-// 		ctx: ctx,
-// 	}
-// }
 
 func NewRedisClient(ctx context.Context, logger *logrus.Logger, redisHost string, redisPassword string, redisDB int) *RedisClient {
 	return &RedisClient{
