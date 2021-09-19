@@ -50,23 +50,33 @@ func (r *Resizer) Start() {
 			}
 
 			// Resize the image:
-			resizedImage, err := utils.ResizeImage(image.Image, uint(image.Dimensions.Width), uint(image.Dimensions.Height))
-			status := ""
-			if err != nil {
-				r.logger.Error("Failed to resize the image: ", image.UUID.String(), "Error: ", err.Error())
-				status = resources.Failed
-			} else {
-				r.logger.Debug("Image resize finished succesfully. image UUID: ", image.UUID.String())
-				status = resources.Done
-			}
-
-			// Updating Cache and DB with the resize results:
-			r.updateResultInCache(image.UUID.String(), status, resizedImage, image.Name)
-			r.updateResultInDB(image.UUID, status, resizedImage, image.Name)
-
+			r.resizeImage(image)
 		} else {
 			// The client will automatically try to recover from all errors.
 			r.logger.Error("Consumer error: %v (%v)\n", err, msg)
 		}
 	}
+}
+
+func (r *Resizer) resizeImage(image *resources.Image) {
+	defer func() {
+		if re := recover(); re != nil {
+			err := re.(error)
+			r.logger.Error(err.Error())
+		}
+	}()
+
+	resizedImage, err := utils.ResizeImage(image.Image, uint(image.Dimensions.Width), uint(image.Dimensions.Height))
+	status := ""
+	if err != nil {
+		r.logger.Error("Failed to resize the image: ", image.UUID.String(), " Error: ", err.Error())
+		status = resources.Failed
+	} else {
+		r.logger.Debug("Image resize finished succesfully. image UUID: ", image.UUID.String())
+		status = resources.Done
+	}
+
+	// Updating Cache and DB with the resize results:
+	r.updateResultInCache(image.UUID.String(), status, resizedImage, image.Name)
+	r.updateResultInDB(image.UUID, status, resizedImage, image.Name)
 }

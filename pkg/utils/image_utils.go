@@ -5,6 +5,8 @@ import (
 	"errors"
 	"image"
 	"image/jpeg"
+	"image/png"
+
 	"io"
 	"mime/multipart"
 	"strconv"
@@ -32,7 +34,7 @@ func ValidateImageResolution(file multipart.File, maxSize int64) error {
 }
 
 func ResizeImage(imageBytes []byte, width uint, height uint) ([]byte, error) {
-	img, _, err := image.Decode(bytes.NewReader(imageBytes))
+	img, format, err := image.Decode(bytes.NewReader(imageBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +42,14 @@ func ResizeImage(imageBytes []byte, width uint, height uint) ([]byte, error) {
 	m := resize.Resize(width, height, img, resize.Lanczos3)
 
 	buf := new(bytes.Buffer)
-	err = jpeg.Encode(buf, m, nil)
+	if format == "jpeg" {
+		err = jpeg.Encode(buf, m, nil)
+	} else if format == "png" {
+		err = png.Encode(buf, m)
+	} else {
+		return []byte{}, errors.New("Ivalid image format, Allowed formats are: jpeg and png")
+	}
+
 	if err != nil {
 		return nil, err
 	}

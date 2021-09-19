@@ -2,8 +2,6 @@ package router
 
 import (
 	"encoding/json"
-	_ "image/jpeg"
-	_ "image/png"
 	"net/http"
 
 	"github.com/asafsibony/image-resizer/pkg/resources"
