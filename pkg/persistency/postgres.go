@@ -47,10 +47,11 @@ func (c *Client) Start() error {
 	password := ""
 
 	if c.connectionInfo.Password != "" {
-		password = fmt.Sprintf("%s", url.QueryEscape(c.connectionInfo.Password))
+		password = fmt.Sprintf("password=%s", url.QueryEscape(c.connectionInfo.Password))
 	}
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s %s",
+	// password=%s
+	dsn := fmt.Sprintf("host=%s user=%s %s dbname=%s port=%s %s",
 		c.connectionInfo.Host,
 		c.connectionInfo.User,
 		password,

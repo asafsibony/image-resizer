@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/alexbrainman/sspi v0.0.0-20180613141037-e580b900e9f5 // indirect
+	github.com/caarlos0/env/v6 v6.7.1 // indirect
 	github.com/confluentinc/confluent-kafka-go v1.7.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.3 // indirect
 	github.com/google/uuid v1.3.0 // indirect
