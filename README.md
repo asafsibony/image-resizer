@@ -2,12 +2,11 @@
 ## Backend implenetation and API for image ressizing
 
 # Constaraints:
-- supported images formats: jpg/png.
+- supported image formats: jpg/png.
 - Max upload image size: 1MB, Max Image resolution: 10MP.
 
 # Usage
 #### Upload image:
--- Request:
 - Method: Post 
 - Path: /image-resizer/upload
 - Content-type: multipart/form-data
@@ -22,7 +21,6 @@ curl -i -X POST -H "Content-Type: multipart/form-data" -F "image=@/home/cat.jpg"
 ```
 
 #### Get Image Resizing Status:
- -- Request:
 - Method: GET 
 - Path: image-resizer/status/{IMAGE-UUID}
 
@@ -33,7 +31,6 @@ curl -i https://asafsibony.com/image-resizer/status/ab0c6ba1-76c8-4ac0-a664-7fc9
 ```
 
 #### Get Image Resizing Status:
- -- Request:
 - Method: GET 
 - Path: https://asafsibony.com/image-resizer/download/{IMAGE-UUID}
 
@@ -77,6 +74,6 @@ kubectl apply -Rf .
 ```
 
 ## TODO:
-- Testing
+- Unit tests, Integretion tests.
 - Return HTTP responses as a formatted JSON.
 - Consider adding connection pooler for Postgres.
