@@ -63,7 +63,7 @@ func main() {
 		Port:     c.PostgresPort,
 		Database: c.PostgresDB,
 		User:     c.PostgresUser,
-		Password: c.PostgresUser,
+		Password: c.PostgresPassword,
 		Options:  c.PostgresOptions,
 	}
 	psqlClient, err := persistency.NewClient(logger, connectionInfo, false)

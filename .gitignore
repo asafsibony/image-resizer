@@ -6,3 +6,6 @@ main
 
 image-resizer-ms
 !image-resizer-ms/
+
+push_ecr
+!push_ecr/

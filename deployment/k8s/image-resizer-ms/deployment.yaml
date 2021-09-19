@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-resizer-ms
+  labels:
+    app: image-resizer-ms
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-resizer-ms
+  template:
+    metadata:
+      labels:
+        app: image-resizer-ms
+    spec:
+      containers:
+        - name: image-resizer-ms
+          image: 353322593157.dkr.ecr.us-west-2.amazonaws.com/image-resizer/image-resizer-ms:v1
+          imagePullPolicy: Always
+
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+
+          envFrom:
+          - configMapRef:
+              name: image-resizer-ms-configmap
+          - secretRef:
+              name: image-resizer-ms-secret
+
+          resources: {}

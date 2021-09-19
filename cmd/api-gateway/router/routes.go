@@ -35,7 +35,7 @@ func NewRouter(httpServer *httpServer.Server,
 
 // Init the HTTP routes
 func (r *Router) InitRoutes() {
-	r.httpServer.Router.HandleFunc("/upload", r.uploadImage).Methods("POST")
-	r.httpServer.Router.HandleFunc("/status/{uuid}", r.getStatus).Methods("GET")
-	r.httpServer.Router.HandleFunc("/download/{uuid}", r.downloadImage).Methods("GET")
+	r.httpServer.Router.HandleFunc("/image-resizer/upload", r.uploadImage).Methods("POST")
+	r.httpServer.Router.HandleFunc("/image-resizer/status/{uuid}", r.getStatus).Methods("GET")
+	r.httpServer.Router.HandleFunc("/image-resizer/download/{uuid}", r.downloadImage).Methods("GET")
 }
