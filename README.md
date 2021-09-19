@@ -30,7 +30,7 @@ curl -i -X POST -H "Content-Type: multipart/form-data" -F "image=@/home/cat.jpg"
 curl -i https://asafsibony.com/image-resizer/status/ab0c6ba1-76c8-4ac0-a664-7fc992861945
 ```
 
-#### Get Image Resizing Status:
+#### Download the resized image:
 - Method: GET 
 - Path: https://asafsibony.com/image-resizer/download/{IMAGE-UUID}
 
